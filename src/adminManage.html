@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <title>관리자 - 모터 제어</title>
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <link rel="stylesheet" href="../css/styles.css" />
+        <style>
+            body {
+                font-family: system-ui, sans-serif;
+                background: #111;
+                color: #eee;
+                margin: 0;
+            }
+            header {
+                padding: 16px 24px;
+                background: #1d2330;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            main {
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 32px 24px 80px;
+            }
+            section {
+                background: #1d2330;
+                border: 1px solid #2d3748;
+                border-radius: 12px;
+                padding: 24px;
+                margin-bottom: 32px;
+            }
+            h1 {
+                font-size: 1.6rem;
+                margin: 0;
+            }
+            label {
+                display: block;
+                font-size: 0.85rem;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+                opacity: 0.8;
+            }
+            input[type='number'] {
+                width: 90px;
+                padding: 6px 8px;
+                border: 1px solid #334155;
+                border-radius: 6px;
+                background: #0f1622;
+                color: #eee;
+            }
+            button {
+                cursor: pointer;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 18px;
+                background: #3772ff;
+                color: #fff;
+                font-weight: 600;
+                font-size: 0.9rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            button.secondary {
+                background: #2d3748;
+                color: #fff;
+            }
+            button.danger {
+                background: #ff4d4d;
+            }
+            button:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+            .grid {
+                display: grid;
+                gap: 16px;
+            }
+            .grid.cols-4 {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            }
+            .inline {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                align-items: flex-end;
+            }
+            .small {
+                font-size: 0.75rem;
+                opacity: 0.6;
+            }
+            pre {
+                background: #0f1622;
+                padding: 16px;
+                border-radius: 8px;
+                font-size: 0.75rem;
+                max-height: 240px;
+                overflow: auto;
+            }
+            .badge {
+                background: #2d3748;
+                padding: 2px 8px;
+                border-radius: 999px;
+                font-size: 0.65rem;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+            }
+            .flex {
+                display: flex;
+                gap: 32px;
+                flex-wrap: wrap;
+            }
+            .card {
+                flex: 1 1 320px;
+            }
+            .separator {
+                height: 1px;
+                background: #2d3748;
+                margin: 24px 0;
+            }
+            .status-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #ff4d4d;
+                display: inline-block;
+                margin-right: 6px;
+                box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+            }
+            .status-dot.on {
+                background: #18c964;
+            }
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.8rem;
+            }
+            .table th,
+            .table td {
+                border: 1px solid #2d3748;
+                padding: 6px 8px;
+                text-align: left;
+            }
+            .table th {
+                background: #253041;
+            }
+            fieldset {
+                border: 1px solid #2d3748;
+                border-radius: 10px;
+                padding: 16px 16px 8px;
+            }
+            legend {
+                padding: 0 8px;
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+            }
+            .adjust-row {
+                margin-top: 6px;
+                display: flex;
+                gap: 8px;
+            }
+            .step-btn-small {
+                background: #253041;
+                border: 1px solid #334155;
+                color: #eee;
+                width: 32px;
+                height: 30px;
+                padding: 0;
+                font-weight: 600;
+                font-size: 0.9rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                cursor: pointer;
+                user-select: none;
+            }
+            .step-btn-small:active {
+                background: #374357;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>페트몬 장비 관리자</h1>
+            <div><span class="status-dot" id="conn-dot"></span><span id="conn-text">DISCONNECTED</span></div>
+        </header>
+        <main>
+            <section>
+                <h2 style="margin-top: 0">장비 연결</h2>
+                <div class="inline">
+                    <button id="btn-connect">장비 연결</button>
+                    <button id="btn-login" disabled>장비 로그인(99)</button>
+                    <button id="btn-query" disabled>속도 조회(Q)</button>
+                    <button id="btn-help" disabled>도움말(h)</button>
+                    <button id="btn-logout" class="secondary" disabled>로그아웃(L)</button>
+                    <button id="btn-go-main" class="secondary" style="background: #444" title="속도 저장 후 메인으로">
+                        메인으로
+                    </button>
+                </div>
+                <div style="margin-top: 16px" class="small" id="info-line">시리얼 장비 연결 후 로그인하세요.</div>
+            </section>
+
+            <section>
+                <h2 style="margin-top: 0">모터 속도 설정</h2>
+                <form id="speed-form" class="grid cols-4" onsubmit="return false;">
+                    <div class="speed-field">
+                        <label>문 열기 속도 (DO)</label>
+                        <div class="pair">
+                            <input type="range" id="speed-do-range" min="0" max="255" value="255" />
+                            <input type="number" id="speed-do" min="0" max="255" value="255" />
+                        </div>
+                        <div class="adjust-row">
+                            <button type="button" class="step-btn-small" data-target="speed-do" data-delta="-1">
+                                -
+                            </button>
+                            <button type="button" class="step-btn-small" data-target="speed-do" data-delta="1">
+                                +
+                            </button>
+                        </div>
+                    </div>
+                    <div class="speed-field">
+                        <label>문 닫기 속도 (DC)</label>
+                        <div class="pair">
+                            <input type="range" id="speed-dc-range" min="0" max="255" value="120" />
+                            <input type="number" id="speed-dc" min="0" max="255" value="120" />
+                        </div>
+                        <div class="adjust-row">
+                            <button type="button" class="step-btn-small" data-target="speed-dc" data-delta="-1">
+                                -
+                            </button>
+                            <button type="button" class="step-btn-small" data-target="speed-dc" data-delta="1">
+                                +
+                            </button>
+                        </div>
+                    </div>
+                    <div class="speed-field">
+                        <label>24V 방향1 (D1)</label>
+                        <div class="pair">
+                            <input type="range" id="speed-d1-range" min="0" max="255" value="70" />
+                            <input type="number" id="speed-d1" min="0" max="255" value="70" />
+                        </div>
+                        <div class="adjust-row">
+                            <button type="button" class="step-btn-small" data-target="speed-d1" data-delta="-1">
+                                -
+                            </button>
+                            <button type="button" class="step-btn-small" data-target="speed-d1" data-delta="1">
+                                +
+                            </button>
+                        </div>
+                    </div>
+                    <div class="speed-field">
+                        <label>24V 방향2 (D2)</label>
+                        <div class="pair">
+                            <input type="range" id="speed-d2-range" min="0" max="255" value="59" />
+                            <input type="number" id="speed-d2" min="0" max="255" value="59" />
+                        </div>
+                        <div class="adjust-row">
+                            <button type="button" class="step-btn-small" data-target="speed-d2" data-delta="-1">
+                                -
+                            </button>
+                            <button type="button" class="step-btn-small" data-target="speed-d2" data-delta="1">
+                                +
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class="inline" style="margin-top: 12px">
+                    <button id="btn-refresh-speed" class="secondary" disabled>현재값 동기화(Q)</button>
+                    <span class="small" id="auto-speed-msg" style="line-height: 1.4"
+                        >입력값 변경 후 약 0.5초 뒤 자동 전송됩니다.</span
+                    >
+                </div>
+                <div class="small" style="margin-top: 8px">SPD:DO=255;DC=120;D1=70;D2=59 형태로 아두이노 전송</div>
+            </section>
+
+            <section>
+                <h2 style="margin-top: 0">빠른 동작 실행</h2>
+                <div class="inline">
+                    <button data-cmd="1" class="quick" disabled>문 열기 (1)</button>
+                    <button data-cmd="2" class="quick" disabled>문 닫기 (2)</button>
+                    <button data-cmd="3" class="quick" disabled>24V 모터 방향1 (3)</button>
+                    <button data-cmd="4" class="quick" disabled>24V 모터 방향2 (4)</button>
+                    <button data-cmd="5" class="quick" disabled>전체 자동 (5)</button>
+                    <button data-cmd="0" class="quick secondary" disabled>센서 상태 (0)</button>
+                    <button data-cmd="X" class="quick danger" disabled>긴급 정지 (X)</button>
+                </div>
+            </section>
+
+            <section>
+                <h2 style="margin-top: 0">수동 모터 제어 (Manual)</h2>
+                <fieldset style="margin-bottom: 16px">
+                    <legend>24V 메인 모터</legend>
+                    <div class="inline">
+                        <div class="pair compact">
+                            <input type="range" id="m24-speed-range" min="0" max="255" value="80" />
+                            <input type="number" id="m24-speed" min="0" max="255" value="80" />
+                        </div>
+                        <div class="adjust-row">
+                            <button type="button" class="step-btn-small" data-target="m24-speed" data-delta="-1">
+                                -
+                            </button>
+                            <button type="button" class="step-btn-small" data-target="m24-speed" data-delta="1">
+                                +
+                            </button>
+                        </div>
+                        <button data-m="M:D24:F" disabled>정방향</button>
+                        <button data-m="M:D24:R" disabled>역방향</button>
+                        <button data-m="M:D24:S" class="secondary" disabled>정지</button>
+                    </div>
+                </fieldset>
+                <fieldset style="margin-bottom: 16px">
+                    <legend>12V 도어 모터</legend>
+                    <div class="inline">
+                        <div class="pair compact">
+                            <input type="range" id="m12-speed-range" min="0" max="255" value="180" />
+                            <input type="number" id="m12-speed" min="0" max="255" value="180" />
+                        </div>
+                        <div class="adjust-row">
+                            <button type="button" class="step-btn-small" data-target="m12-speed" data-delta="-1">
+                                -
+                            </button>
+                            <button type="button" class="step-btn-small" data-target="m12-speed" data-delta="1">
+                                +
+                            </button>
+                        </div>
+                        <button data-m="M:D12:F" disabled>정방향</button>
+                        <button data-m="M:D12:R" disabled>역방향</button>
+                        <button data-m="M:D12:S" class="secondary" disabled>정지</button>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>인버터</legend>
+                    <div class="inline">
+                        <button data-m="M:INV:F" disabled>정방향 ON</button>
+                        <button data-m="M:INV:R" disabled>역방향 ON</button>
+                        <button data-m="M:INV:S" class="secondary" disabled>OFF</button>
+                    </div>
+                </fieldset>
+            </section>
+
+            <section>
+                <h2 style="margin-top: 0">시리얼 로그</h2>
+                <pre id="log"></pre>
+            </section>
+        </main>
+        <script>
+            let port,
+                reader,
+                writer,
+                keepReading = true,
+                serialBuffer = '';
+            let loggedIn = false;
+            let speedDebounce;
+            const logEl = document.getElementById('log');
+            const connDot = document.getElementById('conn-dot');
+            const connText = document.getElementById('conn-text');
+            const buttonsQuick = [...document.querySelectorAll('button.quick')];
+            const manualButtons = [...document.querySelectorAll('button[data-m]')];
+
+            function appendLog(msg, type = 'rx') {
+                const time = new Date().toLocaleTimeString();
+                logEl.textContent += `[${time}] ${type === 'tx' ? '>' : '<'} ${msg}\n`;
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+            function setConnected(on) {
+                connDot.classList.toggle('on', on);
+                connText.textContent = on ? 'CONNECTED' : 'DISCONNECTED';
+                document.getElementById('btn-login').disabled = !on;
+                document.getElementById('btn-connect').disabled = false;
+                document.getElementById('btn-help').disabled = !on;
+            }
+            function setLoggedIn(on) {
+                loggedIn = on;
+                buttonsQuick.forEach((b) => (b.disabled = !on));
+                manualButtons.forEach((b) => (b.disabled = !on));
+                document.getElementById('btn-refresh-speed').disabled = !on;
+                document.getElementById('btn-query').disabled = !on;
+                document.getElementById('btn-logout').disabled = !on;
+                document.getElementById('info-line').textContent = on ? '로그인됨 - 명령 전송 가능' : '로그인 필요';
+                if (on) {
+                    // 로그인 직후 현재 값 즉시 전송하여 동기화
+                    setTimeout(() => sendCurrentSpeeds(true), 300);
+                }
+            }
+            async function connect() {
+                try {
+                    port = await navigator.serial.requestPort();
+                    await port.open({ baudRate: 9600 });
+                    const decoder = new TextDecoderStream();
+                    port.readable.pipeTo(decoder.writable);
+                    reader = decoder.readable.getReader();
+                    const encoder = new TextEncoderStream();
+                    encoder.readable.pipeTo(port.writable);
+                    writer = encoder.writable.getWriter();
+                    setConnected(true);
+                    keepReading = true;
+                    readLoop();
+                    appendLog('포트 연결 성공');
+                } catch (e) {
+                    appendLog('연결 실패: ' + e.message, 'err');
+                }
+            }
+            async function readLoop() {
+                while (keepReading) {
+                    try {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+                        if (value) {
+                            serialBuffer += value; // 누적
+                            let idx;
+                            while ((idx = serialBuffer.search(/\r?\n/)) !== -1) {
+                                const line = serialBuffer.slice(0, idx).trim();
+                                serialBuffer = serialBuffer.slice(
+                                    serialBuffer.slice(idx).match(/^[\r\n]+/)[0].length + idx
+                                );
+                                if (line) {
+                                    appendLog(line, 'rx');
+                                    handleAutoLoginDetect(line);
+                                }
+                            }
+                            // 끝에 개행이 아직 안 온 경우(line 조각)도 로그인 패턴 감시
+                            handleAutoLoginDetect(serialBuffer);
+                        }
+                    } catch (e) {
+                        appendLog('Read error: ' + e.message, 'err');
+                        break;
+                    }
+                }
+            }
+            function handleAutoLoginDetect(text) {
+                // 조각 포함 가능하므로 소문자 변환 후 패턴 검색
+                const lower = text.toLowerCase();
+                if (!loggedIn && lower.includes('login suc') && lower.includes('success')) {
+                    setLoggedIn(true);
+                }
+                if (loggedIn && lower.includes('logged out')) {
+                    setLoggedIn(false);
+                }
+            }
+            async function send(cmd) {
+                if (!writer) return;
+                await writer.write(cmd + '\r\n');
+                appendLog(cmd, 'tx');
+            }
+            async function gracefulDisconnect(goHome = false) {
+                try {
+                    // 최신 속도 1회 더 전송 (이미 동일값이면 EEPROM 미작성)
+                    sendCurrentSpeeds(true);
+                } catch (e) {
+                    /* ignore */
+                }
+                // 약간의 처리 지연 (전송 완료 보장)
+                await new Promise((r) => setTimeout(r, 120));
+                keepReading = false;
+                try {
+                    if (reader) {
+                        await reader.cancel();
+                        reader.releaseLock();
+                    }
+                } catch (e) {}
+                try {
+                    if (writer) {
+                        writer.releaseLock();
+                    }
+                } catch (e) {}
+                try {
+                    if (port) {
+                        await port.close();
+                    }
+                } catch (e) {}
+                setConnected(false);
+                setLoggedIn(false);
+                if (goHome) {
+                    appendLog('메인 페이지로 이동');
+                    window.location.href = '../index.html';
+                }
+            }
+            // 버튼 이벤트
+            document.getElementById('btn-connect').onclick = connect;
+            document.getElementById('btn-login').onclick = () => send('99');
+            document.getElementById('btn-help').onclick = () => send('h');
+            document.getElementById('btn-query').onclick = () => send('Q');
+            document.getElementById('btn-logout').onclick = () => send('L');
+            document.getElementById('btn-go-main').onclick = async (e) => {
+                e.target.disabled = true;
+                await gracefulDisconnect(true);
+            };
+            buttonsQuick.forEach((b) => (b.onclick = () => send(b.dataset.cmd)));
+
+            // 속도 적용
+            document.getElementById('btn-refresh-speed').onclick = () => send('Q');
+
+            function sendCurrentSpeeds(initial = false) {
+                if (!writer || !loggedIn) return;
+                const doV = document.getElementById('speed-do').value;
+                const dcV = document.getElementById('speed-dc').value;
+                const d1V = document.getElementById('speed-d1').value;
+                const d2V = document.getElementById('speed-d2').value;
+                const cmd = `SPD:DO=${doV};DC=${dcV};D1=${d1V};D2=${d2V}`;
+                send(cmd + (initial ? '  // sync' : ''));
+                const msg = document.getElementById('auto-speed-msg');
+                if (msg) {
+                    msg.textContent = '동기화됨 (' + new Date().toLocaleTimeString() + ')';
+                    setTimeout(() => (msg.textContent = '입력값 변경 후 약 0.5초 뒤 자동 전송됩니다.'), 2500);
+                }
+            }
+
+            // 입력 변경 자동 전송 (디바운스 500ms)
+            ['speed-do', 'speed-dc', 'speed-d1', 'speed-d2'].forEach((id) => {
+                const el = document.getElementById(id);
+                ['input', 'change'].forEach((ev) => {
+                    el.addEventListener(ev, () => {
+                        if (!loggedIn) return; // 로그인 전에는 전송 안함
+                        clearTimeout(speedDebounce);
+                        const msg = document.getElementById('auto-speed-msg');
+                        if (msg) msg.textContent = '전송 대기중...';
+                        speedDebounce = setTimeout(() => sendCurrentSpeeds(false), 500);
+                    });
+                });
+            });
+
+            // 슬라이더 ↔ 숫자 입력 동기화 (자동 속도 전송 동일하게 활용)
+            const linkPairs = [
+                ['speed-do-range', 'speed-do'],
+                ['speed-dc-range', 'speed-dc'],
+                ['speed-d1-range', 'speed-d1'],
+                ['speed-d2-range', 'speed-d2'],
+                ['m24-speed-range', 'm24-speed'],
+                ['m12-speed-range', 'm12-speed'],
+            ];
+            linkPairs.forEach(([rangeId, numId]) => {
+                const r = document.getElementById(rangeId);
+                const n = document.getElementById(numId);
+                if (!r || !n) return;
+                r.addEventListener('input', () => {
+                    n.value = r.value;
+                    if (numId.startsWith('speed-')) {
+                        if (!loggedIn) return;
+                        clearTimeout(speedDebounce);
+                        const msg = document.getElementById('auto-speed-msg');
+                        if (msg) msg.textContent = '전송 대기중...';
+                        speedDebounce = setTimeout(() => sendCurrentSpeeds(false), 400);
+                    }
+                });
+                n.addEventListener('input', () => {
+                    r.value = n.value;
+                });
+            });
+
+            // 수동 모터 제어
+            manualButtons.forEach(
+                (b) =>
+                    (b.onclick = () => {
+                        const base = b.dataset.m; // M:D24:F 등
+                        let spd = '';
+                        if (/D24/.test(base)) spd = ':' + document.getElementById('m24-speed').value;
+                        else if (/D12/.test(base) && !/S$/.test(base))
+                            spd = ':' + document.getElementById('m12-speed').value;
+                        send(base + spd);
+                    })
+            );
+
+            // 슬라이더 하단 +/- 미세조정 (이벤트 위임)
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.step-btn-small');
+                if (!btn) return;
+                const targetId = btn.dataset.target;
+                const delta = parseInt(btn.dataset.delta || '0', 10);
+                const numInput = document.getElementById(targetId);
+                const rangeInput = document.getElementById(targetId + '-range');
+                if (!numInput || !rangeInput) return;
+                const min = parseInt(numInput.min || '0', 10);
+                const max = parseInt(numInput.max || '255', 10);
+                let val = parseInt(numInput.value || '0', 10);
+                val = Math.min(max, Math.max(min, val + delta));
+                if (val === parseInt(numInput.value, 10)) return;
+                numInput.value = val;
+                rangeInput.value = val;
+                // 기존 로직 재사용 위해 input 이벤트 발생
+                numInput.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
+            // 길게 누르면 연속 증가/감소 ----------------------------------
+            let holdBtn = null;
+            let holdInitialTimeout = null;
+            let holdInterval = null;
+            let holdStartedAt = 0;
+
+            function applyStep(btn) {
+                const targetId = btn.dataset.target;
+                const delta = parseInt(btn.dataset.delta || '0', 10);
+                const numInput = document.getElementById(targetId);
+                const rangeInput = document.getElementById(targetId + '-range');
+                if (!numInput || !rangeInput) return false;
+                const min = parseInt(numInput.min || '0', 10);
+                const max = parseInt(numInput.max || '255', 10);
+                let val = parseInt(numInput.value || '0', 10);
+                const next = Math.min(max, Math.max(min, val + delta));
+                if (next === val) return false;
+                numInput.value = next;
+                rangeInput.value = next;
+                numInput.dispatchEvent(new Event('input', { bubbles: true }));
+                return true;
+            }
+
+            function clearHoldTimers() {
+                if (holdInitialTimeout) clearTimeout(holdInitialTimeout);
+                if (holdInterval) clearInterval(holdInterval);
+                holdInitialTimeout = null;
+                holdInterval = null;
+                if (holdBtn) holdBtn.classList.remove('holding');
+                holdBtn = null;
+            }
+
+            function startHold(btn) {
+                holdBtn = btn;
+                holdBtn.classList.add('holding');
+                holdStartedAt = performance.now();
+                // 첫 단일 증가 (클릭과 동일)
+                applyStep(btn);
+                // 일정 지연 후 반복 시작
+                holdInitialTimeout = setTimeout(() => {
+                    scheduleAdaptiveInterval();
+                }, 420); // 초기 길게 누름 지연
+            }
+
+            function scheduleAdaptiveInterval() {
+                if (!holdBtn) return;
+                // 경과 시간에 따라 interval 속도 변경 (가속)
+                const elapsed = performance.now() - holdStartedAt;
+                let period = 120; // 기본 120ms
+                if (elapsed > 2500) period = 40; // 2.5초 이후 매우 빠르게
+                else if (elapsed > 1200) period = 70; // 1.2초 이후 빠르게
+                if (holdInterval) clearInterval(holdInterval);
+                holdInterval = setInterval(() => {
+                    if (!holdBtn) return;
+                    const progressed = applyStep(holdBtn);
+                    if (!progressed) {
+                        // 경계 도달 시 중단
+                        clearHoldTimers();
+                        return;
+                    }
+                    // 주기 재평가 (가속 단계 진입 확인)
+                    scheduleAdaptiveInterval();
+                }, period);
+            }
+
+            // 마우스 / 터치 이벤트 등록
+            function isStepButton(el) {
+                return el && el.classList && el.classList.contains('step-btn-small');
+            }
+
+            document.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; // 좌클릭만
+                const btn = e.target.closest('.step-btn-small');
+                if (!isStepButton(btn)) return;
+                startHold(btn);
+            });
+            document.addEventListener(
+                'touchstart',
+                (e) => {
+                    const btn = e.target.closest('.step-btn-small');
+                    if (!isStepButton(btn)) return;
+                    startHold(btn);
+                },
+                { passive: true }
+            );
+
+            function endHold(e) {
+                if (!holdBtn) return;
+                clearHoldTimers();
+            }
+            ['mouseup', 'mouseleave', 'blur'].forEach((ev) => window.addEventListener(ev, endHold));
+            ['touchend', 'touchcancel'].forEach((ev) => window.addEventListener(ev, endHold));
+
+            // Esc 키로도 중단
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') clearHoldTimers();
+            });
+
+            // 시리얼 미지원 안내
+            if (!('serial' in navigator)) {
+                document.body.innerHTML =
+                    '<div style="padding:40px;font:16px system-ui;">이 브라우저는 Web Serial API 를 지원하지 않습니다. Chrome 기반 최신 브라우저를 사용해주세요.</div>';
+            }
+        </script>
+    </body>
+</html>

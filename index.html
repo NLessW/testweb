@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>PETMON Machine</title>
+        <link rel="stylesheet" href="./css/styles.css" />
+    </head>
+    <body>
+        <!-- 메인 화면과 상태 표시 -->
+        <div class="main-layout">
+            <!-- 메인 화면 -->
+            <div id="main-screen" class="screen" style="flex: 3">
+                <div class="main-left">
+                    <h1 class="petmon-title">PETMON <span id="branch-name" class="center-title"></span></h1>
+                    <h2 class="main-guide-title">이용 방법</h2>
+                    <div class="main-guide">
+                        <div class="guide-step">
+                            <div class="guide-img" aria-hidden="true">
+                                <svg width="90" height="90" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" fill="#1d4ed8" />
+                                    <path d="M10 8l6 4-6 4V8z" fill="#fff" />
+                                </svg>
+                            </div>
+                            <div class="step-title">1. 시작하기</div>
+                            <div class="step-desc">아래 <b>시작하기</b> 버튼을 눌러주세요.</div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-img" aria-hidden="true">
+                                <svg width="90" height="90" viewBox="0 0 24 24" fill="none">
+                                    <rect x="3" y="2" width="18" height="20" rx="3" fill="#0ea5e9" />
+                                    <rect x="6" y="6" width="3" height="3" rx="1.5" fill="#fff" />
+                                    <rect x="10.5" y="6" width="3" height="3" rx="1.5" fill="#fff" />
+                                    <rect x="15" y="6" width="3" height="3" rx="1.5" fill="#fff" />
+                                    <rect x="6" y="10.5" width="3" height="3" rx="1.5" fill="#fff" />
+                                    <rect x="10.5" y="10.5" width="3" height="3" rx="1.5" fill="#fff" />
+                                    <rect x="15" y="10.5" width="3" height="3" rx="1.5" fill="#fff" />
+                                    <rect x="10.5" y="15" width="3" height="3" rx="1.5" fill="#fff" />
+                                </svg>
+                            </div>
+                            <div class="step-title">2. 전화번호 입력</div>
+                            <div class="step-desc">화면의 숫자 키패드로 <b>휴대폰 번호</b>를 입력하세요.</div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-img" aria-hidden="true">
+                                <svg width="130" height="130" viewBox="0 0 90 90" fill="none" aria-hidden="true">
+                                    <!-- 사다리꼴 투입구 (위 넓고 아래 좁음으로 뒤집기) -->
+                                    <polygon
+                                        points="30,36 60,36 54,60 36,60"
+                                        fill="#0b1220"
+                                        stroke="#60a5fa"
+                                        stroke-width="3"
+                                    />
+                                    <!-- 뚜껑 (원) : 중앙 정렬, 투입 직전 위치 -->
+                                    <circle cx="45" cy="30" r="10" fill="#60a5fa" stroke="#1d4ed8" stroke-width="2" />
+                                    <!-- 하이라이트 -->
+                                    <ellipse cx="45" cy="33" rx="4" ry="1.6" fill="#93c5fd" opacity="0.25" />
+                                </svg>
+                            </div>
+                            <div class="step-title">3. 뚜껑 넣기</div>
+                            <div class="step-desc">뚜껑 투입구에 <b>병뚜껑</b>을 먼저 넣어주세요.</div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-img" aria-hidden="true">
+                                <svg width="130" height="130" viewBox="0 0 90 90" fill="none" aria-hidden="true">
+                                    <circle cx="45" cy="45" r="14" fill="#ffffff" stroke="#3772ff" stroke-width="4" />
+                                    <polygon
+                                        points="40,18 50,18 45,38"
+                                        fill="#f59e0b"
+                                        stroke="#fbbf24"
+                                        stroke-width="2"
+                                    />
+                                    <polygon
+                                        points="40,72 50,72 45,52"
+                                        fill="#f59e0b"
+                                        stroke="#fbbf24"
+                                        stroke-width="2"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="step-title">4. 띠 분리 · 투입</div>
+                            <div class="step-desc">
+                                페트병 입구의 <b>띠</b>를 분리하고 문이 열리면 <b>투입</b>하세요.
+                            </div>
+                        </div>
+                        <div id="status-host-main">
+                            <div id="status-section" class="status-section">
+                                <div class="status-card">
+                                    <h2 class="status-title">가동 상태</h2>
+                                    <div id="arduino-status" class="status-value status-yellow">상태 확인 중...</div>
+                                </div>
+                                <div class="status-card alt">
+                                    <h2 class="status-title">투명 페트병 투입</h2>
+                                    <div id="machine-status" class="status-value status-green">가능</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="login-button" class="main-start-btn" aria-label="시작하기">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="11" fill="#60a5fa" />
+                            <path d="M10 8l6 4-6 4V8z" fill="#fff" />
+                        </svg>
+                        시작하기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 프로세스 화면 -->
+        <div id="process-screen" class="screen">
+            <div class="process-layout">
+                <div class="process-box">
+                    <div class="process-message" id="process-message" role="status" aria-live="polite"></div>
+                    <div class="process-progress" aria-hidden="true">
+                        <div class="progress-fill" id="process-progress-fill"></div>
+                    </div>
+                    <button id="stop-button" disabled>종료하기</button>
+                </div>
+                <div
+                    id="status-host-process"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center"
+                ></div>
+            </div>
+        </div>
+
+        <!-- 종료 화면 -->
+        <div id="end-screen" class="screen">
+            <div class="end-box">
+                <h2>자원순환에 동참해주셔서 감사합니다 ✅</h2>
+                <p id="end-countdown">10초 뒤 자동으로 처음 화면으로 돌아갑니다.</p>
+                <div class="end-btns">
+                    <button id="return-home">처음으로 돌아가기</button>
+                    <button id="add-more-button">추가투입</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오류 화면 -->
+        <div id="error-screen" class="screen" style="display: none">
+            <div class="end-box" style="gap: 16px">
+                <h2 style="color: #ff4d4d; display: flex; align-items: center; gap: 10px">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 3l9 16H3l9-16z" fill="#ef4444" />
+                        <rect x="11" y="9" width="2" height="6" fill="#fff" />
+                        <rect x="11" y="16.5" width="2" height="2" fill="#fff" />
+                    </svg>
+                    기기 오류가 발생했습니다
+                </h2>
+                <p id="error-message" style="font-size: 1.2rem; color: #fff">
+                    모터가 동작했지만 15초 이내에 센서가 감지되지 않았습니다.
+                </p>
+                <p id="error-phone" style="font-size: 1.1rem; color: #fff; opacity: 0.9">입력한 전화번호: -</p>
+                <p id="error-countdown" style="margin-top: 8px">
+                    10초 뒤 처음 화면으로 돌아가며, 장비 상태는 점검중으로 전환됩니다.
+                </p>
+                <div class="end-btns" style="gap: 12px">
+                    <button id="error-return-home">처음으로 돌아가기</button>
+                    <button id="call-support" style="background: #fff; color: #3772ff; border: 2px solid #3772ff">
+                        고객센터에게 전화하기 (0000-0000)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 로그인 팝업 -->
+        <div id="login-popup">
+            <div class="popup-content">
+                <h2>전화번호를 입력하세요</h2>
+                <input type="tel" id="phone-number" maxlength="13" placeholder="010-1234-5678" />
+                <div class="keypad">
+                    <button>1</button>
+                    <button>2</button>
+                    <button>3</button>
+                    <button>4</button>
+                    <button>5</button>
+                    <button>6</button>
+                    <button>7</button>
+                    <button>8</button>
+                    <button>9</button>
+                    <button class="key-del">←</button>
+                    <button>0</button>
+                    <button class="key-clear">C</button>
+                </div>
+                <button id="login-submit">다음</button>
+            </div>
+        </div>
+
+        <div
+            style="
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                justify-content: flex-end;
+                text-align: right;
+            "
+        >
+            <div
+                id="test-controls"
+                style="
+                    display: none; /* 관리자 모드 전까지 숨김 */
+                    gap: 8px;
+                    background: #1b1f33;
+                    padding: 6px 8px;
+                    border-radius: 8px;
+                    align-items: center;
+                "
+            >
+                <span id="test-mode-badge" style="font-size: 12px; color: #fca5a5">테스트모드: OFF</span>
+                <button
+                    id="btn-toggle-test"
+                    style="
+                        font-size: 12px;
+                        padding: 4px 8px;
+                        border-radius: 6px;
+                        border: 1px solid #475569;
+                        background: #0f172a;
+                        color: #e2e8f0;
+                        cursor: pointer;
+                    "
+                >
+                    토글
+                </button>
+                <button
+                    id="btn-test-error"
+                    style="
+                        font-size: 12px;
+                        padding: 4px 8px;
+                        border-radius: 6px;
+                        border: 1px solid #7c2d12;
+                        background: #1f2937;
+                        color: #fecaca;
+                        cursor: pointer;
+                    "
+                >
+                    에러
+                </button>
+                <button
+                    id="btn-skip-cutter"
+                    style="
+                        font-size: 12px;
+                        padding: 4px 8px;
+                        border-radius: 6px;
+                        border: 1px solid #2563eb;
+                        background: #0b1220;
+                        color: #bfdbfe;
+                        cursor: pointer;
+                    "
+                >
+                    띠 건너뛰기
+                </button>
+                <!-- 관리자 모드 종료 버튼은 JS에서 주입/제어 -->
+            </div>
+            <!-- 관리자 모드 진입 트리거: 시계 왼쪽 투명 버튼 (1초 내 4회 클릭) -->
+            <button
+                id="admin-mode-trigger"
+                aria-label="Admin Mode Trigger"
+                style="width: 64px; height: 40px; opacity: 0; border: none; background: transparent"
+            ></button>
+            <span id="admin-time"></span>
+        </div>
+        <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+        <!-- Optional local config (no server needed). Define window.PETMON_CONFIG here. -->
+        <script src="./config.js"></script>
+        <script type="module" src="./src/index.js"></script>
+        <script src="./src/statusCheck.js"></script>
+        <script src="./src/time.js"></script>
+        <button id="secret-exit-btn" class="secret-exit" aria-label="Exit"></button>
+        <!-- 숨겨진 관리자 진입 트리거 (4회 클릭) -->
+        <button id="admin-hidden-trigger" aria-label="Admin Hidden Trigger"></button>
+        <script>
+            (function () {
+                const btn = document.getElementById('secret-exit-btn');
+                if (!btn) return;
+
+                const REQUIRED = 4; // 4번 클릭
+                const TIME_WINDOW = 1000; // 1초 내
+                let count = 0;
+                let timer = null;
+
+                function reset() {
+                    count = 0;
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                }
+
+                function doExit() {
+                    // If running under Electron, request a true application quit.
+                    try {
+                        if (window.petmonNative && window.petmonNative.isElectron && window.petmonNative.exit) {
+                            window.petmonNative.exit();
+                            return;
+                        }
+                    } catch {}
+
+                    // Browser fallback: try to close if the window was script-opened
+                    try {
+                        window.open('', '_self');
+                        window.close(); // will only work for script-opened windows or kiosk shells that allow it
+                    } catch {}
+
+                    // Avoid warning by navigating away if close is blocked
+                    try {
+                        location.replace('about:blank');
+                    } catch {}
+                    setTimeout(() => {
+                        try {
+                            location.replace(
+                                'data:text/html;charset=utf-8,%3Chtml%3E%3Cbody%20style%3D%22background%3A%23000%3Bmargin%3A0%22%3E%3C%2Fbody%3E%3C%2Fhtml%3E'
+                            );
+                        } catch {}
+                    }, 50);
+                    setTimeout(() => {
+                        try {
+                            document.documentElement.innerHTML = '';
+                            document.documentElement.style.background = '#000';
+                        } catch {}
+                    }, 100);
+                }
+
+                btn.addEventListener('click', () => {
+                    if (count === 0) timer = setTimeout(reset, TIME_WINDOW);
+                    count++;
+                    if (count >= REQUIRED) {
+                        reset();
+                        doExit();
+                    }
+                });
+            })();
+        </script>
+        <script>
+            // 숨겨진 관리자 진입 트리거: 왼쪽 하단 5초 내 4회 클릭 시 adminManage.html 이동
+            (function () {
+                const btn = document.getElementById('admin-hidden-trigger');
+                if (!btn) return;
+                let count = 0;
+                let timer = null;
+                const REQUIRED = 4;
+                const TIME_WINDOW = 5000; // ms
+                function reset() {
+                    count = 0;
+                    if (timer) {
+                        clearTimeout(timer);
+                        timer = null;
+                    }
+                }
+                btn.addEventListener('click', () => {
+                    if (count === 0) timer = setTimeout(reset, TIME_WINDOW);
+                    count++;
+                    if (count >= REQUIRED) {
+                        reset();
+                        window.location.href = './src/adminManage.html';
+                    }
+                });
+            })();
+        </script>
+        <script>
+            // 단축키: Ctrl+Alt+I 로 C:\\petmon.ini 수동 로딩(파일 선택)
+            window.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.altKey && (e.key === 'i' || e.key === 'I')) {
+                    if (window.pickAndLoadIni) {
+                        e.preventDefault();
+                        window.pickAndLoadIni();
+                    } else {
+                        alert('초기화 중입니다. 잠시 후 다시 시도하세요.');
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
