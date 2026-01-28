@@ -700,16 +700,16 @@ function renderProcess(iconKey, message, bgIndex, { spin = false, iconAlt = '' }
             iconKey === 'openDoor'
                 ? 'open'
                 : iconKey === 'closeDoor'
-                ? 'close'
-                : iconKey === 'scan'
-                ? 'scan'
-                : iconKey === 'collect'
-                ? 'collect'
-                : iconKey === 'hand'
-                ? 'warn'
-                : iconKey === 'stop'
-                ? 'stop'
-                : 'label';
+                  ? 'close'
+                  : iconKey === 'scan'
+                    ? 'scan'
+                    : iconKey === 'collect'
+                      ? 'collect'
+                      : iconKey === 'hand'
+                        ? 'warn'
+                        : iconKey === 'stop'
+                          ? 'stop'
+                          : 'label';
 
         const iconHtml =
             iconKey === 'label'
@@ -736,7 +736,7 @@ function renderProcess(iconKey, message, bgIndex, { spin = false, iconAlt = '' }
                 'theme-collect',
                 'theme-label',
                 'theme-warn',
-                'theme-stop'
+                'theme-stop',
             );
             box.classList.add(`theme-${accent}`);
         }
@@ -856,8 +856,8 @@ function handleExitButton() {
                     commands[i].cmd === '2'
                         ? 'Door closed successfully!'
                         : commands[i].cmd === '3'
-                        ? 'Motor task completed!'
-                        : '24V Motor stopped.';
+                          ? 'Motor task completed!'
+                          : '24V Motor stopped.';
 
                 await waitForArduinoResponse(completionMessage);
             }
@@ -891,21 +891,12 @@ async function startProcess() {
     if (closeDoorButton.parentNode) closeDoorButton.parentNode.removeChild(closeDoorButton);
     closeDoorButton.disabled = false;
 
-    // 대기 화면 (문 열림 신호 대기)
-    renderProcess('label', '띠를 먼저 분리해주세요.<br>분리하시면 문이 열립니다.', 2);
-    const __pf = document.getElementById('process-progress-fill');
-    if (__pf) __pf.style.width = '10%';
-    // stepper removed
-
-    // 다양한 열림 신호와 모터 정지 신호 중 먼저 오는 것을 수신
+    // 문 열기 바로 시작
     let openOrStopped;
     try {
+        await writeCmd('1');
         openOrStopped = await waitForAnyArduinoResponse(
             [
-                // 라벨 컷 완료 시 문 열림 화면으로 전환
-                'Label cutting done!',
-                'Label cutting done',
-                // 기존 열림 관련 출력도 백업 패턴으로 유지
                 'Door will opened',
                 'Door will open',
                 'Door opened',
@@ -914,7 +905,7 @@ async function startProcess() {
                 'Motor stopped.',
                 'Motor stopped',
             ],
-            { timeoutMs: 60000 }
+            { timeoutMs: 60000 },
         );
     } catch (err) {
         if (handleDeviceLost(err)) return;
@@ -923,7 +914,7 @@ async function startProcess() {
     }
 
     // 문 열림 화면을 기존과 동일하게 표시
-    const openMsg = `문이 열립니다.<br>띠를 제거하고 페트병을 투입해주세요.<br>마지막으로 닫기 버튼을 눌러주세요.`;
+    const openMsg = `문이 열립니다.<br>페트병을 투입해주세요.<br>마지막으로 닫기 버튼을 눌러주세요.`;
     renderOpenDoorOriginal(openMsg);
 
     // "작동중지" 버튼 옆에 "닫힘" 버튼 추가
@@ -964,8 +955,8 @@ async function startProcess() {
                     commands[i].cmd === '2'
                         ? 'Door closed successfully!'
                         : commands[i].cmd === '3'
-                        ? 'Motor task completed!'
-                        : '24V Motor stopped.';
+                          ? 'Motor task completed!'
+                          : '24V Motor stopped.';
 
                 await waitForArduinoResponse(completionMessage);
             }
@@ -1338,8 +1329,8 @@ stopButton.addEventListener('click', async () => {
                     commands[i].cmd === '2'
                         ? 'Motor stopped.'
                         : commands[i].cmd === '3'
-                        ? 'Motor task completed!'
-                        : '24V Motor stopped.';
+                          ? 'Motor task completed!'
+                          : '24V Motor stopped.';
 
                 await waitForArduinoResponse(completionMessage);
             }
@@ -1523,8 +1514,7 @@ if (typeof window !== 'undefined') {
     if (skipBtn) {
         skipBtn.addEventListener('click', () => {
             if (!__testMode) return alert('테스트 모드를 먼저 켜세요.');
-            // 띠 분리기 단계를 건너뛰도록 'Label cutting done'과 문 열림과 동일한 효과 트리거
-            simEnqueue('Label cutting done!', 100);
+            // 문 열림 시퀀스를 바로 트리거
             simEnqueue('Door will open', 200);
             simEnqueue('Motor stopped.', 400);
         });
